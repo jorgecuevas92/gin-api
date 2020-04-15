@@ -65,9 +65,32 @@ func main() {
 	// The request responds to a url matching:  /welcome?firstname=Jane&lastname=Doe
 
 	r.GET("/welcome", func(c *gin.Context) {
-		firstName := c.DefaultQuery("firstName", "Guest")
-		lastName := c.Query("lastName") //shortcut for c.Request.URL.Query().Get("lastname")
+		firstName := c.DefaultQuery("firstname", "Guest")
+		lastName := c.Query("lastname") //shortcut for c.Request.URL.Query().Get("lastname")
 		c.String(http.StatusOK, "Hello %s %s", firstName, lastName)
+	})
+
+	// Multipart/URLEncoded Form
+	r.POST("/form_post", func(c *gin.Context) {
+		message := c.PostForm("message")
+		nick := c.DefaultPostForm("nick", "anonymous")
+
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "posted",
+			"message": message,
+			"nick":    nick,
+		})
+	})
+
+	// Query + Post Form
+
+	r.POST("/post", func(c *gin.Context) {
+		id := c.Query("id")
+		page := c.DefaultQuery("page", "0")
+		name := c.PostForm("name")
+		message := c.PostForm("message")
+
+		log.Printf("id: %s; page: %s; name: %s; message: %s", id, page, name, message)
 	})
 
 	// Run
