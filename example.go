@@ -4,12 +4,14 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	// Set the port
+
 	port := os.Getenv("PORT")
 
 	if port == "" {
@@ -19,6 +21,7 @@ func main() {
 	r := gin.Default()
 
 	// Define Handlers
+
 	rootHandler := func(c *gin.Context) {
 		c.String(http.StatusOK, "Hello World")
 	}
@@ -30,10 +33,45 @@ func main() {
 	}
 
 	// Configure Routes
+
 	r.GET("/", rootHandler)
 	r.GET("/ping", pingHandler)
 
+	// Parameters in the path
+
+	// This handler will match /users/john but will not match /users/ or /users
+
+	r.GET("/users/:name", func(c *gin.Context) {
+		name := c.Param("name")
+		c.String(http.StatusOK, "Hello %s", name)
+	})
+
+	// This handler will match /user/john and /user/john/send
+	// If no other routers match /user/john, it will redirect to /user/john
+
+	r.GET("/users/:name/*action", func(c *gin.Context) {
+		name := c.Param("name")
+		action := c.Param("action")
+		message := name + " is " + action
+		// For each matched request Context will hold the route definition
+		hasAction := c.FullPath() == "/users/:name/*action"
+		log.Printf("Route has action: %s", strconv.FormatBool(hasAction))
+		c.String(http.StatusOK, message)
+	})
+
+	// Querystring parameters
+
+	// Query string parameters are parsed using the existing underlying request object.
+	// The request responds to a url matching:  /welcome?firstname=Jane&lastname=Doe
+
+	r.GET("/welcome", func(c *gin.Context) {
+		firstName := c.DefaultQuery("firstName", "Guest")
+		lastName := c.Query("lastName") //shortcut for c.Request.URL.Query().Get("lastname")
+		c.String(http.StatusOK, "Hello %s %s", firstName, lastName)
+	})
+
 	// Run
+
 	log.Printf("Listening on port %s", port)
 	r.Run(":" + port)
 }
