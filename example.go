@@ -93,6 +93,15 @@ func main() {
 		log.Printf("id: %s; page: %s; name: %s; message: %s", id, page, name, message)
 	})
 
+	// Map as querystring or postform parameters
+
+	r.POST("postmap", func(c *gin.Context) {
+		ids := c.QueryMap("ids")
+		names := c.PostFormMap("names")
+
+		log.Printf("ids: %v; names: %v", ids, names)
+	})
+
 	// Run
 
 	log.Printf("Listening on port %s", port)
